@@ -1,0 +1,143 @@
+---
+title: "Transmission & Distribution Cost Comparisons and Distributed Production"
+author: "Morgan Browning & Carol Lenox"
+date: "02/16/2021"
+output:
+  rmdformats::downcute:
+    self_contained: true
+    css: styles.css
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=FALSE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+
+
+# Objectives
+
+## T&D Updates
+
+1. Simplify T&D build for easier management and better scenario analysis
+2. Begin analysis and testing of distributed production utilizing new T&D
+
+### Literature Summary
+
+Most literature to date is in one of two forms: 
+(1) Academic and/or government journal articles and reports modeling potential hydrogen futures, technologies, uses 
+(2) Case studies on hydrogen production and use
+
+Across the spectrum it seems little consensus has been reached. Assumptions vary drastically based on scope of analysis (national vs regional vs local), potential for other zero or low-carbon technologies, and investment in R&D. However, consensus has been reached between FCEV OEMs that 700 bar tanks will be used for both LDV and HDV vehicles, that liquid distribution better serves HDV and gaseous distribution better serves LDV, and that H2 has a lot of potential. 
+
+The most significant barriers identified are the transmission and distribution infrastructure. We're building infrastructure from scratch whereas most other technologies in the model are assumed to be there. This will continue to be our focus for the next month. 
+
+### New Build
+
+Now there will be only two full-pathway transmission and distribution technologies, one for gas trucking and one for liquid trucking. HDSAM and HDRSAM parameters are now more generalized to increase the simplicity of the representation. This allows us more control with scenario analysis, where we can add impactful complexities, cost curves, etc...
+
+* HDV fueling differs from LDV fueling
+  + fueling pressure
+  + fill amount
+  + fill rate
+  + fill strategy
+  + precooling requirements
+* HDV refueling is best poised to be served through liquid trucking due to the higher demands at these sites and cost effectiveness of liquid transport
+* LDV refueling is best poised to be served through gaseous trucking due to lower demands at these sites and cost effectiveness of gaseous transport
+
+HDSAM and HDRSAM were both used to gather cost, input, and emissions data for both the gaseous-LDV and liquid-HDV pathways
+
+* Three sets of pathway costs were generated for each pathway (gaseous/liquid)
+  + High costs (Reference)
+      + Low market penetration and refueling station capacity (differs between HDV and LDV refueling stations), minimal component cost reductions)
+  + Mid costs
+      + Medium market penetration and refueling station capacity (differs between HDV and LDV refueling stations), moderate component cost reductions)
+  + Low costs 
+      + High market penetration and refueling station capacity (differs between HDV and LDV refueling stations), significant component cost reductions
+
+* Reference Assumptions
+  + Light duty fueling - All LDV vehicle classes
+    + Gaseous H2 truck distribution to refueling station
+    + 4 or fewer dispensers per refueling station
+    + Geologic storage at station
+    + 500/1200/2000 kg/day refueling station capacity
+    + 1/8/15% market penetration
+        + LDV FCEV not expected to compete as well with BEV
+  + Heavy duty fueling - Haul and Bus
+    + Liquid H2 truck distribution to refueling station
+    + 6 or more dispensers per refueling station
+    + 700/1400/2200 kg/day refueling station capacity
+    + 1/15/30% market penetration
+        + HDV FCEV competes more strongly with BEV and diesel due to H2 refueling compatability with HDV duty cycles
+  + Shared Assumptions
+    + 700 bar dispensing
+    + Urban/Rural combined market serving a population of 200,000
+    
+As a point of reference, the older version of the T&D network assumed a baseline 30% market penetration for all technologies. This resulted in significantly lower T&D costs than we're using now.
+
+## Initial Testing
+
+### Objectives and Assumptions
+
+1. How does new T&D compare with old T&D?
+2. Effects of system-wide CO2 constraints?
+3. Transportation decarbonization and H2 use?
+
+### Modeling Approach
+
+1. T&D model [path]
+  + Older T&D representation [old] with transmission and distribution modes disaggregated, 30% market penetration assumption
+  + New T&D representation [new] with updated data using HDSAM/HDRSAM, transmission and distribution modes represented by one full pathway
+2. System-wide CO2 reduction (sys73)
+  + Reference case, no emission constraint [none]
+  + 73% system-wide CO2 reduction from 2005 levels (linearly from 2010-2050), with 100% reduction in transportation emissions [sys73]
+3. Pathway Costs [cost]: Only applied to new T&D model
+  + High cost, reference case [ref]
+      + Low market penetration, low refueling station capacity, minimal component cost reductions remain steady 2015-2050
+  + Mid-level costs, conservative case [mid]
+      + Costs decrease to the mid-cost for each pathway by 2030 and then remain stagnant through 2050
+  + Low cost, optimistic case [low]
+      + Costs decrease to the mid-cost for each pathway by 2030 and the low-cost pathway by 2045
+  + Rapid low cost, incredibly optimistic case [rapid]
+      + Costs decrease to the mid-cost for each pathway by 2020 and the low-cost pathway by 2030
+
+
+     
+### Results
+
+Transmission and Distribution costs pose a significant barrier to H2 proliferation. The new costs, based on the best available information, are higher than the older costs that we had built into the model. Through more investigation we've found that the older T&D module represents a supremely optimistic set of assumptions (100x higher daily H2 throughput, minimum 30% market penetration, optimistic technological learning). As a result, the new T&D representation make H2 more expensive than BEV across all transportation classes and does not see significant buildout, achieving a maximum of 0.5 PJ of H2 throughput eve in the lowest cost runs. 
+
+As part of our next steps, we will continue to research available cost data for T&D and compare DOE target costs to those that we're generating using available data and models. 
+
+## Next Steps
+
+* Continue T&D analysis and research
+  + Create scenarios that utilize DOE target costs of delivered H2
+      + Gather more data for target costs over time and how/why they have changed
+      + How does the DOE determine targets?
+      + How can we implement these as low or optimistic scenarios?
+  + Further discern how our updated costs fit into the landscape of available cost data
+      + How do our costs compare?
+      + Where do our assumptions differ? 
+      + What are scenarios that can get our costs down?
+      + In what scenarios might our costs be far off?
+  + Return to Guiding Questions: H2 Competitiveness
+      + What kinds of scenarios can we create where H2 becomes cost competitive?
+      + What kinds of production, T&D, fueling cost reductions need to happen?
+      + What assumption about oil prices, natural gas prices, or electricity generation technology costs get hydrogen into that range?
+      + What happens to refineries as H2 replaces transportation fossil-fuels?
+      + What are the key levers for lowering the cost of a H2 fuel system and making H2 more competitive?
+      + What if, for example, there were a program that buys down the price of that part of the infrastructure? 
+      

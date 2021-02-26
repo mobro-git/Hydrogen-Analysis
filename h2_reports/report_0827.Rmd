@@ -1,0 +1,250 @@
+---
+title: "TIMES H2 Calibration and Initial Results"
+author: "Morgan Browning & Carol Lenox"
+date: "8/27/2020"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: sandstone
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE, warning = FALSE, message = FALSE, tidy = TRUE, cache = FALSE)
+source("h2_setup_08272020.R")
+source("h2_data_08272020.R")
+source("h2_results_08272020.R")
+```
+
+## Objective
+
+### Tasks
+
+1. Begin calibration of H2 module within TIMES
+2. Produce baseline scenarios without requiring H2 production or use
+3. Highlight areas of interest for scenario analysis
+
+### Calibration and initial model run methodology
+
+* H2 Production
+  + Without constraints, natural gas SMR is the only H2 production technology until 2040, when a next gen technology, Photoelectrochemical Type 4 becomes available. The predominant inputs to the Photo4 technology are water and solar energy, by far making it the least expensive technology (albeit renewable). Given the uncerstainty of this technology coming to fruition, we have created a set of runs that exclude this technology [NoNextGen].
+  + In order to require only renewable H2 production, we have created a separate set of runs that require PEM electrolysis for H2 production. These scenarios are split between allowing grid electricity for the electrolysis and requiring only renewable electricity. Additionally, a set of runs was created to reduce the cost of both current and future PEM electrolyzer technologies by 50% or 80% by 2050.
+* H2 Vehicle Costs
+  + Even with significant cost decreases, busses are not cost-competitive and do not gain market penetration.
+  + LDV were found to achieve very high market penetrations (up to 70%) with high cost reductions. The "sweet spot" for our sensitivity analysis was assuming a 30% reduction in LDV capital costs.
+  + HDV required a greater reduction to achieve meaningful market penetration, with a "sweet spot" of 60% cost reduction in HDV capital costs. These capital cost reductions are achieved through a linear cost curve from 2020 to 2050.
+* Transportation CO2 caps
+  + A set of runs was conducted to test the sensitivity of H2 adoption to transportation emissions reduction goals. CO2 caps of 40%, 60%, and 80% reduction were placed on cumulative LDV, HDV, and bus CO2 emissions from the reference run, increasing the cap to the full reduction % from 2020 to 2050.
+
+## Scenario Naming Conventions
+
+* Transportation CO2 caps
+  + 40co2,60co2,80co2 = 40/60/80% reduction in LDV, HDV, and bus CO2 emissions from 2020 to 2050, based on 2010 emissions.
+* H2 production electricity inputs
+  + gridelc = no renewable requirement, can use resource-agnostic grid electricity
+  + rnwelc = requires all electricity used in H2 production to come from wind or solar
+* Available H2 production technologies
+  + ref = all technologies available
+  + noNextGen = all next generation H2 technologies are excluded
+  + PEMonly = all H2 must be produced using PEM electrolyzers
+* PEM cost reductions
+  + PEM50 = 50% cost reduction by 2050
+  + PEM80 = 80% cost reduction by 2050
+
+
+# H2 Production
+
+## By Technology {.tabset}
+
+### All
+
+```{r}
+ggplotly(h2prod_tech_all)
+```
+
+> Natural gas SMR H2 production far surpasses PEM-only production
+
+### No Next Gen
+
+```{r}
+ggplotly(h2prod_tech_nonextgen)
+```
+
+### PEM Only
+
+```{r}
+ggplotly(h2prod_tech_pem)
+```
+
+## Total H2
+
+```{r}
+ggplotly(h2prod_cum_all)
+```
+
+> No next gen and grid electricity allows for a cheaper option, natural gas, which elicits more H2 production. PEM-only using grid electricity gets higher H2 production than when renewable electricity is required.
+
+## Regional
+
+```{r}
+ggplotly(h2prod_tech_reg)
+```
+
+> When PEM-only requirement is in place, all regions produce H2. If natural gas SMR is allowed, region 7 becomes the production hub. This is something that we'll need to address/constrain using inter-state trade parameters and costs.
+
+# Electricity Production
+
+## Total Production {.tabset}
+
+### National
+
+```{r}
+ggplotly(totalelc)
+```
+
+> Transportation sector CO2 caps increase total electricity production. PEM requirement elicits more overall electricity production.
+
+###  Regional
+```{r}
+ggplotly(regtotalelc)
+```
+
+> Transportation sector CO2 caps similarly increase electricity production in all regions, but region 6 is differently affected. We will need to dig into why this is.
+
+## By Technology
+
+```{r}
+ggplotly(elctechs_all)
+ggplotly(elctechs)
+```
+
+> PEM requirement increases electricity production, predominantly natural gas, even though renewable electricity is required as a PEM input. This likely shows a needed total electricity output increase due to the shift in electricity to transportation, not only due to PEM electricity needs.
+
+
+# CO2 Emissions
+
+## All Sectors {.tabset}
+
+### All Scenarios
+
+```{r}
+ggplotly(co2emissions_all)
+```
+
+### PEM Only
+
+```{r}
+ggplotly(co2emissions_PEMonly)
+```
+
+### No Next Gen
+
+```{r}
+ggplotly(co2emissions_nonextgen)
+```
+
+> Likely that increased electricity need in transportation due to the transportation CO2 caps causes the commercial and industrial sectors to use a greater amount of natural gas in place of electricity, increasing those sectors' emissions. 
+
+## Sectoral CO2 Emissions {.tabset}
+
+### Commercial
+
+```{r}
+ggplotly(comco2emissions_all)
+```
+
+### Industrial
+
+```{r}
+ggplotly(indco2emissions_all)
+```
+
+### Electric
+
+```{r}
+ggplotly(elcco2emissions_all)
+```
+
+> Requiring renewable electricity reduces emissions from the electric sector as compared to using grid electricity. Tighter transportation sector constraints increase electric sector emissions, as requirements for electricity increase.
+
+## Transportation CO2 Emissions
+
+```{r}
+ggplotly(trnco2emissions_all)
+```
+
+> As expected, except that we see that disallowing next gen H2 production techs gets us to lower emissions as compared to a PEM requirement in the 80% transportation CO2 cap scenario.
+
+```{r}
+ggplotly(trnco2emissions_PEMonly)
+```
+
+> Reducing the cost of electrolysis from 50% to 80% reductions doesnt decrease overall transportation CO2 emissions.
+
+# SO2 Emissions
+
+```{r}
+ggplotly(so2emissions_change)
+```
+
+> Transportation 80% CO2 caps increase SO2 emissions in the commercial and industrial sectors. Refinery and resource supply emissions decrease as transportation CO2 emissions caps increase.
+
+# H2 Transportation Use
+
+## Total
+
+```{r}
+ggplotly(trnh2)
+```
+
+> H2 busses are still too expensive and do not come in. We can take a further look at the capital cost tipping point for H2 bus market penetration
+
+## Sectors {.tabset}
+
+### HDV
+
+```{r}
+ggplotly(hdvh2)
+```
+
+> HDV only has meaningful market penetration with an 80% transportation CO2 reduction. PEM requirement is still too expensive and reduces HDV H2 use.
+
+### LDV
+
+```{r}
+ggplotly(ldvh2)
+```
+
+> Compact cars have meaningful market penetration in all cases. Crossover trucks only come in if PEM is not required. Crossovers, Full, and Vans come in a different amounts depending on PEM cost and transportation CO2 caps.
+
+# H2 Vehicles
+
+## HDV {.tabset}
+
+### Market share
+
+```{r}
+ggplotly(thshares)
+```
+
+### Demand met
+
+```{r}
+ggplotly(thdemand)
+```
+
+## LDV {.tabset}
+
+### Market share
+
+```{r}
+ggplotly(tlshares)
+```
+
+### Demand met
+
+```{r}
+ggplotly(tldemand)
+```
+
+

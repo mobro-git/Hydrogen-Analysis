@@ -1,0 +1,136 @@
+---
+title: "Calibration Testing Distributed H2 Production"
+author: "Morgan Browning & Carol Lenox"
+date: "02/16/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    theme: spacelab
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE, warning = FALSE, message = FALSE, tidy = TRUE, cache = FALSE)
+# source("h2_setup_02162021.R")
+# source("h2_data_02162021.R")
+# source("h2_results_02162021.R")
+# rmarkdown::render(here("h2_reports/report_02162021.Rmd"))
+```
+
+## Distributed Production
+
+1. Update all production technologies with newest NREL H2A Production Case Study data
+2. Begin analysis and testing of distributed production and new T&D build
+
+### Technology Updates
+
+NREL updated their production case studies, though they did not document which case studies and which values within each case study were updated. We have cross-referenced all of our data with the released case studies and update all relevant data. The most significant changes made were to PEM electrolysis, both centralized and distributed and both current and future, as shown below. Production capacity increased and capital and fixed operating costs decreased, both by significant amounts. The differences varied across current/future and central/distributed. Additionally, water requirements decreased and electricity inputs increased. Overall process efficiency decreased by ~2%.
+
+We are awating a response from NREL to answer the following questions:
+
+* What led to the steep decrease in costs?
+* Is there an expectation for additional cost decreases?
+* How often will the case studies be updated?
+
+```{r}
+datatable(head(pemcost, 6), class = 'cell-border stripe', options = list(autoWidth = TRUE, dom = 't'))
+```
+
+The updated data was used for the following calibration testing of the distributed hydrogen production system.
+
+### Build
+
+There are three distributed production technologies, each available in current (2015) and future (2040) forms.
+
+1. Natural Gas Steam Methane Reformer
+2. PEM Electrolyzer
+3. Ethanol Steam Reformer
+
+Distributed production facilities include H2 production, compression, storage, and dispensing. Dispensed H2 from these facilities can fuel any transportation enduse and is assumed gaseous. Daily capacity is assumed to be ~1500 kg/day with a 86% capacity factor. 
+
+Centralized production facilities include only H2 production. The T&D pathway from the plant gate through dispensing is either gaseous H2 trucking to serve LDV enduses or liquid H2 trucking to serve HDV enduses.
+
+### Modeling Approach
+
+1. Production Technologies 
+  + All production technologies represented, both centralized and distributed [all]
+  + Only centralized production technologies, no distributed production [nodist]
+2. Scenarios
+  + Reference case, no emission constraint, no hydrogen requirements [ref]
+  + 80% system-wide CO2 reduction from 2005 levels (linearly from 2010-2050) [sys80]
+  + 100% reduction in heavy duty and light duty transportation emissions by 2050 [trn100]
+  + 10% hydrogen vehicle requirement in both light duty and heavy duty transportation by 2050 [tlth10]
+
+### Initial Results
+
+#### Hydrogen Production
+
+```{r}
+ggplotly(h2totalprod)
+```
+
+> In the required 10% H2 scenario, ~2% more H2 comes in when there is distributed production. In the transportation sector CO2 reduction case, H2 proliferates with distributed production but does not achieve market penetration with just centralized production and transmission and distribution requirements. The system-wide 80% CO2 reduction case does not achieve any H2 market penetration beyond the 0.0017% market share requirement in the reference case (per AEO), choosing instead to electrify and reduce emissions in other sectors where possible.
+
+```{r}
+h2prodbytech
+```
+
+> Natural gas SMR is the predominant technology built out. With system-wide CO2 reductions, CCS is added, as well as some 2040 PEM. However, in these cases only the bare minimum H2 is produced. Distributed natural gas SMR and ethanol reforming are brought in, both in the transportation sector H2 requirement and emissions reduction cases.
+
+> Centralized current and future natural gas SMR is built only in Region 7 (gulf coast states) while distributed production technologies are built out in all regions. * We are still working on building inter-state transmission costs *
+
+## T&D Cost Comparisons
+
+### Pathway Cost Sensitivities
+
+  + High cost, reference case [ref]
+      + Low market penetration, low refueling station capacity, minimal component cost reductions remain steady 2015-2050
+  + Mid-level costs, conservative case [mid]
+      + Costs decrease to the mid-cost for each pathway by 2030 and then remain stagnant through 2050
+  + Low cost, optimistic case [low]
+      + Costs decrease to the mid-cost for each pathway by 2030 and the low-cost pathway by 2045
+  + Rapid low cost, incredibly optimistic case [rapid]
+      + Costs decrease to the mid-cost for each pathway by 2020 and the low-cost pathway by 2030
+
+```{r}
+ggplotly(tdtotals)
+```
+
+> Decreasing the cost of H2 T&D dramatically increases the ability for H2 to compete within the transportation sector, as seen in the trn100 cases (left). Achieving low-cost T&D significantly increase centralized H2 production, but does not reach the levels achieved when distributed production is allowed. 
+
+> Lower T&D costs are still unable to make H2 competitive when a syste-wide CO2 reduction is required.
+
+```{r}
+tdtechs
+```
+
+> The increase in centralized H2 production as T&D costs decrease in the trn100 case comes entirely from 2040 natural gas SMR H2 production.\
+
+### Comparison to Other Data Sources
+
+The current retail price of H2 ($/kg) is ~16, and as low as ~13 in more saturated markets (mainly CA) and is produced using Natural Gas SMR. The DOE's last published goals for LCOE of delivered H2 is below 4/kg for Q4 2020, with no more than 2/kg coming from the transmission and distribution (assumed gaseous). The only technology represented in the TIMES model that hits these targets is Distributed Nat Gas SMR H2 production, as delivery costs are negligible at the distributed site. These targets are, however, going to be near impossible to achieve without significant technological breakthroughs or market penetration. More likely are the projected near-term and 2050 retail prices projectedy by DOE. Our represented production technologies and T&D pathway costs fall better in line with these costs. We would like to note that our T&D costs assume only conservative market penetration and decline in costs and further scenario analysis will be conducted as part of our larger study.
+
+```{r}
+costcomparison
+```
+
+```{r}
+datatable(head(allcosts,19), class = 'cell-border stripe', options = list(autoWidth = TRUE))
+```
+
+
+## Next Steps
+
+* Assess realistic growth constraints and capacity bounds for distributed production
+* Test scenarios that utilize DOE target costs of delivered H2 (much steeper T&D cost decreases)
+* In depth scenario analysis in preparation for a delivered product September 2021:
+    + What kinds of scenarios can we create where H2 becomes cost competitive?
+    + What kinds of production, T&D, fueling cost reductions need to happen?
+    + What assumption about oil prices, natural gas prices, or electricity generation technology costs get hydrogen into that range?
+    + What happens to refineries as H2 replaces transportation fossil-fuels?
+    + What are the key levers for lowering the cost of a H2 fuel system and making H2 more competitive?
+    + What if, for example, there were a program that buys down the price of that part of the infrastructure? 
+      

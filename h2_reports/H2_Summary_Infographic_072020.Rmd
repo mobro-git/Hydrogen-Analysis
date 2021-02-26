@@ -1,0 +1,415 @@
+---
+title: "H2 Intro Analysis Summary"
+author: "Morgan Browning"
+date: "7/20/2020"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: sandstone
+    fig_width: 7
+    fig_height: 5
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE, warning = FALSE, message = FALSE, tidy = TRUE, cache = FALSE)
+```
+```{r}
+## ----Library----------------------------------------
+
+# load all packages into the environment. there are more packages here than I ended up using,
+# but the list just kept getting longer over time. could clean this up but doesnt seem worth
+# the effort because no harm done
+library(relaimpo)
+library(plotly)
+library(plyr)
+library(robustbase)
+library(sandwich)
+library(lmtest)
+library(graphics)
+library(colorspace)
+library(scales)
+library(ggrepel)
+library(here)
+# library(ggtextures)
+library(gridExtra)
+library(ggpubr)
+library(patternplot)
+library(plotly)
+library(flexdashboard)
+library(DT)
+library(naniar)
+library(maps)
+library(mapdata)
+library(usmap)
+library(ggmap)
+library(maptools)
+library(sf)
+library(PerformanceAnalytics)
+library(jtools)
+library(ggstance)
+library(huxtable)
+library(readxl)
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+library(ggthemes)
+library(patchwork)
+library(here)
+
+## ----Functions-------------------------------------------
+
+# function to pull in all sheets from an excel spreadsheet and turn them into 
+# separate data frames. should make for easier data analysis and manipulation 
+
+ReadAllSheets <- function(filename, tibble = FALSE) {
+  sheets <- readxl::excel_sheets(filename)
+  x <- lapply(sheets, function(X) readxl::read_excel(filename, 
+                                                     sheet = X, 
+                                                     skip = 6))
+  if(!tibble) x <- lapply(x, as.data.frame)
+  names(x) <- sheets
+  x
+}
+
+# function to turn my scenario titles (which are very convoluted and long) into 
+# intelligible combinations of variables that I can filter on to better sort the 
+# data and results
+
+categorize <- function(table) {
+  x <- table %>%
+    mutate(h2req = case_when(
+      str_detect(Scenario, "5p") ~ "5p",
+      str_detect(Scenario, "10p") ~ "10p",
+      str_detect(Scenario, "15p") ~ "15p",
+      str_detect(Scenario, "20p") ~ "20p",
+      str_detect(Scenario, "25p") ~ "25p",
+      TRUE ~ "Other"
+    )) %>%
+    mutate_if(is.numeric, ~round(.,2)) %>%
+    mutate_all(~replace(.,is.na(.),0))
+}
+
+## ----import data------------------------------------------
+
+# points to the excel file of output from VEDA_BE, reads in the names of the sheets,
+# and plugs the spreadsheet into the function I created to turn all sheets into
+# separate dataframes in the current environment
+
+results <- c(here("h2_data/h2data_072020.xlsx"))
+data_global <- ReadAllSheets(results)
+
+## ----co2 emissions------------------------------------------
+
+co2emissions_reg <- as.data.frame(data_global$`CO2 Emissions`) %>% 
+  select(-`2011`,-`Attribute`) %>%
+  gather(`2010`, `2015`, `2020`, `2025`, `2030`, `2035`, `2040`, `2045`, `2050`, 
+         key = "Year", value = "emissions") %>%
+  filter(Commodity != "ETHCO2") %>%
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  mutate_all(~replace(.,is.na(.),0))
+
+co2emissions <- co2emissions_reg %>%
+  group_by(Scenario, Commodity, Year) %>%
+  summarize(emissions = sum(emissions))
+
+
+## ----h2 production------------------------------------------------------
+
+h2prod_cap_reg <- as.data.frame(data_global$`H2 Production Capacity`) %>% 
+  gather(`2015`, `2020`, `2025`, `2030`, `2035`, `2040`, `2045`, `2050`, 
+         key = "Year", value = "cap") %>% 
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  mutate_all(~replace(.,is.na(.),0))
+
+h2prod_cumcap_reg <- h2prod_cap_reg %>%
+  group_by(Scenario, Year, Attribute, Region) %>%
+  summarize(cap = sum(cap)) %>%
+  ungroup()
+
+h2prod_cap <- h2prod_cap_reg %>%
+  group_by(Scenario, Year, Attribute, Process) %>%
+  summarize(cap = sum(cap)) %>%
+  ungroup()
+
+h2prod_cumcap <- h2prod_cap %>%
+  group_by(Scenario,Year,Attribute) %>%
+  summarize(cap = sum(cap)) %>%
+  ungroup()
+
+## ----h2 production - fuel use------------------------------------------------------
+
+h2prodfuel_reg <- as.data.frame(data_global$`H2 Production Fuels`) %>% 
+  gather(`2015`, `2020`, `2025`, `2030`, `2035`, `2040`, `2045`, `2050`, 
+         key = "Year", value = "use") %>% 
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  mutate_all(~replace(.,is.na(.),0))
+
+h2prodfuel <- h2prodfuel_reg %>%
+  group_by(Scenario, Process, Commodity, Year, Attribute) %>%
+  summarize(use = sum(use)) %>%
+  ungroup()
+
+## ----h2 t&d------------------------------------------------------
+
+h2td_reg <- as.data.frame(data_global$`H2 T&D`) %>%
+  gather(`2015`, `2020`, `2025`, `2030`, `2035`, `2040`, `2045`, `2050`, 
+         key = "Year", value = "use") %>% 
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  mutate_all(~replace(.,is.na(.),0))
+h2td_reg$Year <- as.numeric(h2td_reg$Year)
+
+h2td <- h2td_reg %>%
+  group_by(Scenario, Process, Commodity, Year) %>%
+  summarize(use = sum(use)) %>%
+  ungroup()
+
+## ----h2 in transportation------------------------------------------------------
+
+h2trn_reg <- as.data.frame(data_global$`H2 Transportation Use`) %>%
+  gather(`2015`, `2020`, `2025`, `2030`, `2035`, `2040`, `2045`, `2050`, 
+         key = "Year", value = "PJ") %>% 
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  mutate_all(~replace(.,is.na(.),0))
+h2trn_reg$Year <- as.numeric(h2trn_reg$Year)
+
+h2trn <- h2trn_reg %>%
+  group_by(Scenario, Commodity, Process, Attribute, Year) %>%
+  summarize(PJ = sum(PJ)) %>%
+  ungroup()
+
+## ----transportation mix------------------------------------------------------
+
+trn_reg <- as.data.frame(data_global$`Transportation Summary`) %>%
+  select(-`2011`) %>%
+  gather(`2010`, `2015`, `2020`, `2025`, `2030`, `2035`, `2040`, `2045`, `2050`, 
+         key = "Year", value = "PJ") %>% 
+  mutate_if(is.numeric, ~round(.,2)) %>%
+  mutate_all(~replace(.,is.na(.),0))
+trn_reg$Year <- as.numeric(trn_reg$Year)
+
+trn <- trn_reg %>%
+  group_by(Scenario, Attribute, ProcessSet, Year) %>%
+  summarize(PJ = sum(PJ)) %>%
+  ungroup()
+
+## Load Setup and Data Scripts ----
+
+# allows me to quickly run my two previous scripts when I make changes in them or
+# if I'm just going to work with results and need to pull in the data
+
+# source("h2_Scripts/h2_setup_072020.R")
+# source("h2_Scripts/h2_data_072020.R")
+
+## CO2 Emissions ----
+
+co2emissions_graph <- co2emissions %>% 
+  filter(Commodity %in% c("COMCO2", "ELCCO2", "RESCO2", "TRNCO2", "INDCO2")) %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = emissions, color = Scenario, group = Scenario)) +
+  facet_wrap(~Commodity, scales = "free_y") +
+  labs(x = "Year", y = "CO2 Emissions (Mt)", title = "CO2 Emissions by Scenario")
+  
+
+## H2 Production ----
+
+## ~ Total Capacity ----
+
+# separated by technology
+
+h2prod_totalcap_tech <- h2prod_cap %>% filter(Attribute == "VAR_Cap") %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = cap, color = Scenario, group = Scenario)) +
+  facet_wrap(~Process, scales = "free_y") +
+  labs(x = "Year", y = "Total Capacity (PJ)", title = "H2 Total Production by Technology")
+
+# cumulative over all technologies
+
+h2prod_totalcap <- h2prod_cumcap %>% filter(Attribute == "VAR_Cap") %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = cap, color = Scenario, group = Scenario)) +
+  labs(x = "Year", y = "Total Capacity (PJ)", title = "H2 Total Production by Scenario")
+
+## ~ New Capacity ----
+
+# separated by technology
+
+h2prod_newcap_tech <- h2prod_cap %>% filter(Attribute == "VAR_Ncap") %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = cap, color = Scenario, group = Scenario)) +
+  facet_wrap(~Process, scales = "free_y") +
+  labs(x = "Year", y = "New Capacity (PJ)", title = "H2 New Production Capacity by Technology")
+
+# cumulative over all technologies
+
+h2prod_newcap <- h2prod_cumcap %>% filter(Attribute == "VAR_Ncap") %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = cap, color = Scenario, group = Scenario)) +
+  labs(x = "Year", y = "New Capacity (PJ)", title = "H2 New Production by Scenario")
+
+
+## ~ Fuel Use ----
+
+h2fueluse <- h2prodfuel %>% 
+  filter(Commodity %in% c("ELCH2OC", "ELCH2OW","INDELC","INDNGA")) %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = use, color = Scenario, group = Scenario)) +
+  facet_grid(Commodity~Process, scales = "free_y") +
+  labs(y = "Fuel Use", title = "Fuel Use for H2 Production")
+
+## ~ Production ----
+
+h2prodbytech <- h2prodfuel %>% 
+  filter(Commodity == "H2PROD") %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = use, color = Scenario, group = Scenario)) +
+  facet_grid(~Process, scales = "free_y") +
+  labs(y = "PJ", title = "H2 Production by Technology")
+
+## T&D----
+
+h2td_graph <- h2td %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = use, color = Scenario, group = Scenario)) +
+  facet_grid(~Process)
+
+## H2 in Transportation----
+
+h2trn_type <- h2trn %>%
+  filter(Commodity %in% c("TLH2", "THH2")) %>%
+  filter(!Process %in% c("SCTHH2", "SCTLH2")) %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = PJ, group = Scenario, color = Scenario)) +
+  facet_grid(Commodity~Process)
+  
+## Transportation Mix----
+
+trn_mix <- trn %>%
+  filter(Attribute == "VAR_FIn") %>%
+  filter(ProcessSet %in% c("TH-DSL", "TH-H2")) %>%
+  select(-Attribute) %>%
+  ggplot() +
+  geom_line(aes(x = Year, y = PJ, color = Scenario, group = Scenario)) +
+  facet_wrap(~ProcessSet)
+```
+
+## Objective
+
+### Tasks
+
+1. Validate H2 build within TIMES
+2. Establish a baseline
+3. Test cost sensitiities 
+4. Highlight areas of interest for scenario analysis
+
+### Methodology Updates
+
+* T&D
+  + Reverted to existing TIMES T&D infrastructure while we continue to investigate updates to T&D costs using HDSAM and other datasets
+* Transportation sector H2 options
+  + HDV - hauling, busses
+  + LDV - compact, full, minivan, crossover truck 
+* Scenario prep
+  + H2 mandates for transportation sector
+  + Emissions Constraints
+  + Cost sensitivities along the H2 supply chain
+  + Renewable electricity requirements for H2 production
+  + Water consumption and withdrawal constraints
+
+## Scenario Summary
+
+*5-25% required H2 fuel use for both LDV and HDV (haul only) demands
+  + 1% required by 2030
+  + scenario required % by 2050 - linearly increasing from 2030 to 2050
+
+## H2 Production by Technology {.tabset}
+
+H2CCNGA = Natural Gas SMR
+H2CFPHOTO4 = Photoelectrochemical
+
+### Total Capacity
+
+```{r}
+ggplotly(h2prod_totalcap_tech)
+```
+
+### New Capacity
+
+```{r}
+ggplotly(h2prod_newcap_tech)
+```
+ 
+## H2 Production Capacity {.tabset}
+
+### Total Capacity
+
+```{r}
+ggplotly(h2prod_totalcap)
+```
+
+### New Capacity
+
+```{r}
+ggplotly(h2prod_newcap)
+```
+
+## Production Inputs & Outputs {.tabset}
+
+ELCH2OC - consumed H2O
+ELCH2OW - withdrawn and returned H2O
+INDELC - electricity consumed by the industrial sector
+INDNGA - natural gas consumed by the industrial sector
+
+### Fuel Use
+
+```{r}
+ggplotly(h2fueluse)
+```
+
+### Technology Mix
+
+```{r}
+ggplotly(h2prodbytech)
+```
+
+## Transmission and Distribution 
+
+PLSVUA and PLTKUA are both pipelines - one for transmission, one for distribution
+
+```{r}
+ggplotly(h2td_graph)
+```
+
+## Transportation Sector {.tabset}
+
+* Vehicles
+  + THH2 - H2 haul
+  + TLCH2 - H2 LDV compact 
+  + TLFH2 - H2 LDV full
+  + TLTCOH2 - H2 LDV crossover truck
+  + TLVH2 - H2 LDV minivan
+
+* Fuel Types
+  + TH-DSL - diesel used by haulers
+  + TH-H2 - H2 used by haulers
+
+### H2 Vehicles 
+
+```{r}
+ggplotly(h2trn_type)
+```
+
+### HDV Tradeoffs
+
+```{r}
+ggplotly(trn_mix)
+```
+
+
+
+
+
+
+
+
+

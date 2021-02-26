@@ -1,0 +1,244 @@
+---
+title: "TIMES H2 Analysis and Results"
+author: "Morgan Browning & Carol Lenox"
+date: "11/03/2020"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: sandstone
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE, warning = FALSE, message = FALSE, tidy = TRUE, cache = FALSE)
+# source("h2_setup_11032020.R")
+# source("h2_data_11032020.R")
+# source("h2_results_11032020.R")
+# rmarkdown::render(here("h2_reports/report_11032020.Rmd"))
+```
+
+# Current Objectives
+
+## T&D Updates
+
+1. Talking with ANL to assess assumptions for T&D build update
+2. Deciding on best approach (scenario analysis vs. rebuild)
+
+### ANL Meeting Highlights
+
+T&D Modes
+
+* Liquefaction and liquid trucking
+  + Predominant mode of transport (based on current industry views)
+    + Idea is that you pack up H2 at a high density and transport – then unpack to gaseous at station
+    + Liq trucks have much higher H2 transport capacity
+    + Today, it’s the cheapest way to deliver H2 to a station, < $5/kg H2
+    + However, liquefaction is energy intensive
+      + 11-15 kWh of energy per kg H2
+      + Most liquefaction plants today run on hydro – not CO2-intensive – but this obviously is not something we can
+    + Majority of H2 industry (except for Nikola) is assuming liq delivery and gas end use
+    + nnouncements for new liquefaction plants (30 ton/day) past 2 years
+      + Air Liquide – AZ
+      + Air Products – CA
+    + DV needs liquid transport – significantly cheaper than gaseous H2
+      + LDV might see cheaper transport with gaseous, but not at high penetrations
+* Gas compression in tube trailers
+    + Gas trucks are much heavier and have less capacity
+* Pipelines
+    + Capital intensive and would only come in with significant demand
+      + Costs roughly linear w/ diameter of pipeline
+      + Strong at economies of scale – currently most exist in the Gulf close to refineries and ammonia plants
+    + Viable options in scenarios with higher H2 penetrations after that high penetration is achieved
+      + “large market demand” would be at least 100 ton/day
+    + ANL doesn’t see pipelines as near-term feasible
+* Refueling stations
+    + Need pressure control, cooling, and storage
+      + Compression storage is currently too expensive
+    + Non-trivial costs, make up a meaningful percentage of overall T&D costs
+      + E.g. if liquid H2 delivered at 5 dollars /kg, fueling costs can reach ~ 10 dollars/kg
+    + Pre-cooling required for gaseous cooling during fueling ~-40 C
+      + If not cooled to this degree, fueling time is much slower and not as safe
+    + Most vehicle tanks are 700 bar pressure (Type 4 gaseous tank)
+      + Assumption that dispensing will be 700 bar gas via pump
+        + Dispense at pump to these vehicles is quicker than compression
+      + Requires conditioning liquid to -40 C gas at the pump
+
+H2 Production & Emissions
+
+* Predominantly natural gas SMR today – CO2-intensive
+    + 0-11 kg CO2/kg H2
+    + Get ~ half of the emissions back because of fuel economy ratio of the vehicles
+* NREL Electrolysis Case Study
+    + Costs assume high volume (aka NREL has optimistic electrolysis costs)
+
+ANL Models
+
+* HDSAM Model – Delivery and Refueling for LDV
+    + Gaseous trailers tab allows choice of tube-trailer truck type (new and more expensive vs. older models and cheaper)
+* HRSAM – Only refueling for LDV – doesn’t add delivery cost
+* HDRSAM – Only refueling for HDV – doesn’t add delivery cost
+    + Bus H2 storage capacity ~ 35 kg H2
+    + Haul H2 storage capacity ~ 80 kg H2
+      + Use these values and change vehicle penetration to build out T&D for HDV specifically
+      + Ignore refueling station values from HDSAM and manually change the costs
+      + BUT change refueling station capacity
+      
+Model updates
+
+* Additional training videos will be released by ANL in the next few weeks
+
+## Forced H2 production to assess maximum potential
+
+1. What is maximum possible H2 production?
+2. What would it take to fuel all of LDV or HDV with H2?
+3. Without any constraints? Only with electrolysis? Only with renewable electrolysis?
+
+Modeling Approaches
+
+1. Max: Forced H2 production uses a new demand commodity with 1 technology
+  + Complete standalone demand without any constraints or real-world enduse
+  + Quantities set to equal fuel for 
+    + all transportation 
+    + all LDV
+    + all HDV
+  + These are arbitrary high values to stress test constraints within the model
+2. End use demands: Forcing H2 high penetrations for LDV and HDV
+  + 50, 70, and 90% H2 requirements for each sub-sector
+  + Growing from 2030-2050
+  + All fuel constraints on other LDV and HDV fuels are removed starting 2030
+3. Production Methods
+  + Grid electricity, all H2 production technologies
+  + Grid electricity, only PEM electrolysis
+  + Renewable-only electricity, only PEM electrolysis
+
+Scenario Naming Conventions
+
+* Requirement method [prod]
+  + Max = forced H2 production separate from any actual enduse
+  + Enduse = forcing H2 production for use within specific enduses (LDV or HDV shares)
+* H2 Production Quantity [qnt]
+  + allTRN, allHDV, allLDV = requiring H2 production to match cumulative fuel inputs to the whole transportation sector, LDV, and HDV, respectively
+  + TL/TH 50/70/90 = requirements for 50, 70, or 90% market share of H2 vehicles for LDV and HDV demands, respectively
+* Available H2 production technologies [tech]
+  + All = all technologies available
+  + Pem = H2 must be produced using PEM electrolyzers
+* H2 Production Electricity Inputs [elc]
+  + Grid = all generation assets can contribute to H2 production
+  + Rnw = only solar and wind assests can contribute to H2 production
+
+## H2O Assessment
+
+1. How much water is needed for maximum H2 production?
+2. How does this compare with the current electric sector needs?
+3. Is this feasible?
+
+
+# Results
+
+## Overall H2 Production
+
+```{r}
+ggplotly(h2prod_cum_all)
+```
+
+> The switch from grid to renewable-only electricity for Max cases limits potential H2 Production. Renewable generation capacity limits are hit within the model.
+
+```{r}
+ggplotly(h2prod_tech_all)
+```
+
+> Natural gas H2 production far surpasses PEM-only production. At the Max requirements, some biogas, coal w/ CCS, and PEM comes in, though the predominant production method is natural gas SMR.
+
+```{r}
+ggplotly(h2prod_tech_pem)
+```
+
+> Looking at the cases with PEM required: If we take electricity from the grid, we achieve higher capacities from PEM. When we switch to requiring renewable electricity for electrolysis, we limit our H2 production capacity by maxing out on the capacity limits.
+
+## Regional H2 Production
+
+```{r}
+ggplotly(h2prod_tech_reg)
+```
+
+> Almost all NGA production comes from Region 7 (TX, OK, AR, LA) and current PEM production from Region 6 (KY, TN, MS, AL)
+
+```{r}
+ggplotly(h2prod_all_reg)
+```
+
+> Region 6 only has high production when using grid electricity, not when renewables are required. Regions 5 (DE, MD, VA, NC, SC, GA, FL), 7 (TX, OK, AR, LA), 8 (MT, ID, WY, NV, UT, CO, NM, AZ), and 9 (AK, WA, OR, CA, HI) have consistently higher renewable H2 production.
+
+## Grid Electricity Production
+
+This data represents only electricity that stays on the grid.
+
+### National
+
+```{r}
+ggplotly(totalelc)
+```
+
+> In very high H2 demand scenarios, natural gas and nuclear are used to pick up the slack when renewables are diverted for H2 production.
+
+###  Regional
+
+```{r}
+ggplotly(regtotalelc)
+```
+
+> Region 6 has the most dramatic generation shift to increase nuclear and natural gas. There are some solar and wind upticks in other regions.
+
+## Renewable Electricity Production
+
+This data represents only renewable electricity from solar and wind that is diverted for H2 production.
+
+### National
+
+```{r}
+ggplotly(totalrnwelc)
+```
+
+> More renewable electricity generation for H2 production comes from wind than solar, though both are used.
+
+###  Regional
+
+```{r}
+ggplotly(regtotalrnwelc)
+```
+
+> Most solar is coming from regions 7 (TX, OK, AR, LA), 8 (MT, ID, WY, NV, UT, CO, NM, AZ), and 9 (AK, WA, OR, CA, HI). Wind assets are more spread out.
+
+## Sectoral CO2 Emissions
+
+### Required transportation LDV and HDV shares
+
+```{r}
+ggplotly(co2emissions_enduse)
+```
+
+> High penetrations of H2 vehicles with required renewably-sourced H2 lead to CO2 emissions increases in the electric and industrial sectors. Tradeoffs between transportation sector emissions reductions and increased natural gas and CHP use elsewhere.
+
+## Water Use
+
+H2 water use is significant, but not as significant as electric sector water use.
+
+### H2 Production 
+
+```{r}
+ggplotly(h2h2o)
+```
+
+> Most H2 production water use is consumption and is not returned to the system. Highest consumption from electrolysis, though natural gas SMR is still a high water consumer. Advanced SMR becomes more water efficient. Coal is also a large water consumer, though is only deployed in the largest Max case.
+
+### Electricity Generation 
+
+```{r}
+ggplotly(elch2o)
+```
+
+> The largest differences in natural gas water consumption and withdrawal is due to an increase in capacity to compensate for renewables drawn for H2 production.
+
+
+
+

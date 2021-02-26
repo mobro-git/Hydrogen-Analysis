@@ -1,0 +1,188 @@
+---
+title: "TIMES H2 Calibration and Initial Results"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: lumen
+    vertical_layout: scroll
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+```
+
+# H2 Production
+
+## By Technology
+
+```{r}
+h2prod_tech_all
+```
+
+> Natural gas SMR H2 production far surpasses PEM-only production
+
+```{r}
+h2prod_tech_nonextgen
+h2prod_tech_pem
+```
+
+## Total H2
+
+```{r}
+h2prod_cum_all
+```
+
+> No next gen and grid electricity allows for a cheaper option, natural gas, which elicits more H2 production. PEM-only using grid electricity gets higher H2 production than when renewable electricity is required.
+
+## Regional Production
+
+```{r}
+h2prod_tech_reg
+h2prod_cum_reg
+```
+
+> When PEM-only requirement is in place, all regions produce H2. If natural gas SMR is allowed, region 7 becomes the production hub. This is something that we'll need to address/constrain using inter-state trade parameters and costs.
+
+# Electricity Production
+
+## Total Production
+
+```{r}
+totalelc
+```
+
+> Transportation sector CO2 caps increase total electricity production. PEM requirement elicits more overall electricity production.
+
+## Regional Production
+```{r}
+regtotalelc
+```
+
+> Transportation sector CO2 caps similarly increase electricity production in all regions, but region 6 is differently affected. We will need to dig into why this is.
+
+## By technology
+
+```{r}
+elctechs_all
+elctechs
+```
+
+> PEM requirement increases electricity production, predominantly natural gas, even though renewable electricity is required as a PEM input. This likely shows a needed total electricity output increase due to the shift in electricity to transportation, not only due to PEM electricity needs.
+
+
+# CO2 Emissions
+
+## All CO2 Emissions
+
+```{r}
+co2emissions_all
+co2emissions_PEMonly
+co2emissions_nonextgen
+```
+
+> Likely that increased electricity need in transportation due to the transportation CO2 caps causes the commercial and industrial sectors to use a greater amount of natural gas in place of electricity, increasing those sectors' emissions. 
+
+## Commercial and Industrial CO2 Emissions
+
+```{r}
+comco2emissions_all
+indco2emissions_all
+```
+
+## Electric Sector CO2 Emissions
+
+```{r}
+elcco2emissions_all
+```
+
+> Requiring renewable electricity reduces emissions from the electric sector as compared to using grid electricity. Tighter transportation sector constraints increase electric sector emissions, as requirements for electricity increase.
+
+## Transportation CO2 Emissions
+
+```{r}
+trnco2emissions_all
+```
+
+> As expected, except that we see that disallowing next gen H2 production techs gets us to lower emissions as compared to a PEM requirement in the 80% transportation CO2 cap scenario.
+
+```{r}
+trnco2emissions_PEMonly
+```
+
+> Reducing the cost of electrolysis from 50% to 80% reductions doesnt decrease overall transportation CO2 emissions.
+
+# SO2 Emissions
+
+## All CO2 Emissions
+
+```{r}
+so2emissions_all
+so2emissions_change
+```
+
+> Transportation 80% CO2 caps increase SO2 emissions in the commercial and industrial sectors. Refinery and resource supply emissions decrease as transportation CO2 emissions caps increase.
+
+
+
+
+# Start
+
+## Column {data-width=500, .tabset}
+
+### Chart A1
+
+```{r}
+
+```
+
+> Monthly deaths from lung disease in the UK, 1974–1979
+
+### Chart A2
+
+```{r}
+
+```
+
+### Chart A3
+
+```{r}
+
+```
+
+## Column {data-width=250}
+
+### ValueBox
+
+```{r}
+valueBox(dim(mtcars)[1], icon = "fa-pencil")
+```
+
+### Chart C
+
+```{r}
+gauge(99, min = 0, max = 100,
+      gaugeSectors(success = c(90,100),
+                   warning = c(50,89),
+                   danger = c(0,49)))
+```
+
+## Column {data-width=250}
+
+### Chart D
+
+Hello, this is my report. Btw, I can change colors.
+<font color = "red">Hello Red Font</font>
+
+# Expert
+
+```{r}
+datatable(mydata,
+          extensions = 'Buttons', 
+          options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'print', 'csv')
+          ))
+```
+
