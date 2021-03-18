@@ -1,4 +1,4 @@
-# pulls in all sheets from Veda2.0 batch export as separate data frames
+# pulls in all sheets from Veda2.0 batch export xlsx file as separate data frames
 
 ReadAllSheets <- function(filename, tibble = FALSE) {
   sheets <- readxl::excel_sheets(filename)
@@ -10,34 +10,35 @@ ReadAllSheets <- function(filename, tibble = FALSE) {
   x
 }
 
+
 # creates parameters out of scenario names and renames scenarios
 
-categorize <- function(table) {
-  x <- table %>%
-    mutate(dist = case_when(
-      str_detect(Scenario, "Dist") ~ "nodist",
-      TRUE ~ "all"
-    )) %>%
-    mutate(scen = case_when(
-      str_detect(Scenario, "Sys80") ~ "sys80",
-      str_detect(Scenario, "10P") ~ "tlth10",
-      str_detect(Scenario, "Force") ~ "force",
-      str_detect(Scenario, "TRN100") ~ "trn100",
-      TRUE ~ "Ref"
-    )) %>%
-    mutate(td = case_when(
-      str_detect(Scenario, "fast") ~ "rapid",
-      str_detect(Scenario, "low") ~ "low",
-      str_detect(Scenario, "mid") ~ "mid",
-      TRUE ~ "high"
-    )) %>%
-    mutate(td = factor(td, levels = c("rapid","low","mid","high"))) %>%
-    mutate(dist = factor(dist, levels = c("all","nodist"))) %>%
-    mutate(scen = factor(scen, levels = c("force","trn100","tlth10","sys80","Ref"))) %>%
-    mutate(Scenario = paste(scen,".",dist,".",td,sep = "")) %>%
-    mutate_if(is.numeric, ~round(.,2)) %>%
-    mutate_all(~replace(.,is.na(.),0))
-}
+# categorize <- function(table) {
+#   x <- table %>%
+#     mutate(dist = case_when(
+#       str_detect(Scenario, "Dist") ~ "nodist",
+#       TRUE ~ "all"
+#     )) %>%
+#     mutate(scen = case_when(
+#       str_detect(Scenario, "Sys80") ~ "sys80",
+#       str_detect(Scenario, "10P") ~ "tlth10",
+#       str_detect(Scenario, "Force") ~ "force",
+#       str_detect(Scenario, "TRN100") ~ "trn100",
+#       TRUE ~ "Ref"
+#     )) %>%
+#     mutate(td = case_when(
+#       str_detect(Scenario, "fast") ~ "rapid",
+#       str_detect(Scenario, "low") ~ "low",
+#       str_detect(Scenario, "mid") ~ "mid",
+#       TRUE ~ "high"
+#     )) %>%
+#     mutate(td = factor(td, levels = c("rapid","low","mid","high"))) %>%
+#     mutate(dist = factor(dist, levels = c("all","nodist"))) %>%
+#     mutate(scen = factor(scen, levels = c("force","trn100","tlth10","sys80","Ref"))) %>%
+#     mutate(Scenario = paste(scen,".",dist,".",td,sep = "")) %>%
+#     mutate_if(is.numeric, ~round(.,2)) %>%
+#     mutate_all(~replace(.,is.na(.),0))
+# }
 
 elcprocess <- function(table) {
   x <- table %>%

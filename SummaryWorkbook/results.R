@@ -1,14 +1,5 @@
-## ----Setup------------------------------------------
+## ----Totals------------------------------------------
 
-source(here("h2_Scripts/library.R"))
-source(here("h2_Scripts/functions.R"))
-source(here("h2_Scripts/scales_factors_colors.R"))
-
-data_global <- ReadAllSheets(here(results))
-
-## ----Setup------------------------------------------
-
-# Dummies
 # NG total
 # coal total
 # petroleum product total
@@ -71,7 +62,7 @@ data_global <- ReadAllSheets(here(results))
 # rf use in industrial
 # dsl use in industrial
 # asp use in industrial
- 
+
 # co2 total
 # co2 elc
 # co2 ind
@@ -79,7 +70,7 @@ data_global <- ReadAllSheets(here(results))
 # co2 res
 # co2 trn
 # co2 resources
- 
+
 # nox total
 # nox elc
 # nox ind
@@ -88,7 +79,7 @@ data_global <- ReadAllSheets(here(results))
 # nox buildings
 # nox resources
 # nox trn
- 
+
 # so2 total
 # so2 elc
 # so2 ind
@@ -97,13 +88,13 @@ data_global <- ReadAllSheets(here(results))
 # so1 buildings
 # so2 resources
 # so2 trn
- 
+
 # pm10 total
 # pm10 elc
 # pm10 ind
 # pm10 buildints
 # pm10 trn
- 
+
 # pm25 total
 # pm25 elc
 # pm25 ind
@@ -112,7 +103,7 @@ data_global <- ReadAllSheets(here(results))
 # pm25 buildings
 # pm25 resources
 # pm25 trn
- 
+
 # voc total
 # voc elc
 # voc ind
@@ -121,7 +112,7 @@ data_global <- ReadAllSheets(here(results))
 # voc buildings
 # voc resources
 # voc trn
- 
+
 # ch4 total
 # ch4 elc
 # ch4 ind
@@ -130,7 +121,7 @@ data_global <- ReadAllSheets(here(results))
 # ch4 buildings
 # ch4 resources
 # ch4 trn
- 
+
 # co total
 # co elc
 # co ind
@@ -139,7 +130,7 @@ data_global <- ReadAllSheets(here(results))
 # co buildings
 # co resources
 # co trn
- 
+
 # bc total
 # bc elc
 # bc ind
@@ -148,7 +139,7 @@ data_global <- ReadAllSheets(here(results))
 # bc buildings
 # bc resources
 # bc trn
- 
+
 # oc total
 # oc elc
 # oc ind
@@ -157,7 +148,7 @@ data_global <- ReadAllSheets(here(results))
 # oc buildings
 # oc resources
 # oc trn
- 
+
 # n2o total
 # n2o elc
 # n2o ind
@@ -166,17 +157,7 @@ data_global <- ReadAllSheets(here(results))
 # n2o buildings
 # n2o resources
 # n2o trn
- 
+
 # nh3 total
 # nh3 elc
 # nh3 trn
-
-
-
-
-
-
-
-
-
-

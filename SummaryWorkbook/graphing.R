@@ -1,3 +1,5 @@
+## ----graph formatting----------------------------------------
+
 bottom1 <- theme(legend.position = "bottom")
 bottom2 <- guides(color = guide_legend(nrow = 1), linetype = guide_legend(nrow = 1))
 
@@ -31,6 +33,8 @@ x_disc_l <- scale_x_discrete(breaks = seq(2010,2050, by = 5), expand = c(0,.2),
 
 x_cont_scenario <- scale_x_continuous(breaks = seq(2010,2050, by = 5), expand = c(0,1))
 x_disc_scenario <- scale_x_discrete(breaks = seq(2010,2050, by = 5), expand = c(0,.2))
+
+## ----coloring----------------------------------------
 
 col_elc <- c(`Wind` = "#92CBF3", `Hydro` = "dodgerblue4", 
              `Solar` = "darkgoldenrod2", `Nuclear` = "darkorange3", 
