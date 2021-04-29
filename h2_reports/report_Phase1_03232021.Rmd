@@ -1,0 +1,129 @@
+---
+title: "Phase 1 Update"
+author: "Morgan Browning & Carol Lenox"
+date: "03/23/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    theme: spacelab
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE, warning = FALSE, message = FALSE, tidy = TRUE, cache = FALSE)
+# source("h2_setup_03232021.R")
+# source("h2_data_03232021.R")
+# source("h2_results_03232021.R")
+# rmarkdown::render(here("h2_reports/report_Phase1_03232021.Rmd"))
+```
+
+## Objective
+
+Identify key cost and emissions mitigation paramters that affect hydrogen proliferation to be used in subsequent analyses.
+
+### Parameters
+
+1. System-wide net-zero CO2 emissions by:
+  + Reference - no constraint
+  + 2050 with land sink
+  + 2060 with land sink
+  + 2080 without land sink
+2. Transportation sector-secific net-zero CO2 emissions by:
+  + Reference - no constraint
+  + 2050
+3. H2 car and truck additional cost decrease from 2030-2050:
+  + Reference costs - no additional decrease
+  + 10% decrease
+  + 20% decrease
+4. Battery electric car and truck cost trajectories:
+  + Reference costs - projected BEV cost declines
+  + Slower and more moderate cost declines - Linear/Steady decline
+5. Hydrogen Transmission and Distribution Costs
+  + Reference cost - continued high costs ~$16/kg
+  + Low cost - achieve ~$5/kg delivery by 2040
+  + DOE $4/kg delivery - achieved by 2025
+  + DOE $2/kg delivery - achieved by 2025
+6. Future Hydrogen Production Technology Availability (lower cost, higher efficiency
+  + Reference - available 2040
+  + Available 2030
+7. Future Central and Distributed PEM Cost Decreases
+  + Reference - projected 52% and 42% reduction for central and distributed production, respectively, by 2040
+  + 70% reduction for both central and distributed production achieved by 2030
+
+> The following analysis focuses on parameters 1-5.
+
+### Additional data needed
+
+* Additional car, truck, and bus costs for H2 technologies
+* Charging infrastructure costs for BEVs
+* Battery storage technologies
+* Updated wind and solar costs
+* H2 interstate transmission costs
+
+> We are currently working on gathering data and building these features out and expect to be able to incorporate some of it into the final Phase 1 analysis.
+
+### Initial Cases
+
+The initial run of 60 scenarios sought to hone in on the parameters that lead to a significant market penetration of hydrogen. Below are the cases that comprise this initial nested parametric sensitivity analysis.
+
+```{r}
+datatable(head(cases,65), class = 'cell-border stripe', options = list(autoWidth = TRUE))
+```
+
+> Scenario naming convention: nz.trn.fcev.bev.td.fut.pem
+
+## Results
+
+### System-wide Net-zero CO2 Constraints
+
+```{r}
+h2totalprod
+```
+
+> The net-zero system CO2 emissions cases are the largest drivers of hydrogen production. Without a net-zero requirement, even with the greatest H2 incentives, H2 use only reaches ~13 PJ by 2050. Due to this, we targeted our initial analysis towards greater H2 proliferation and focused on the differences between parameters and their sensitivities under system-wide CO2 constraints. We chose to use the net-zero by 2060 constraint for the bulk of this analysis as there are enough options within the database and timeframe for the system to be able to meet this constraint and solve while still bringing hydrogen into the system.
+
+The remainder of this analysis will focus on the effect of H2-specific parameters within the net-zero system CO2 emissions by 2060 case.
+
+### Hydrogen Production
+
+```{r}
+h2totalprod_tech_2060
+```
+
+> Electrolysis is the predominant H2 production technology in the high penetration scenarios, driven most substantially by a slower BEV cost decline and secondly by FCEV costs. Centralized natural gas with CCS plays a large role as well, with a more distinct impact seen with shifts in FCEV cost.
+
+```{r}
+h2totalprod_tech_td_2060
+```
+
+> Looking more specifically at H2 T&D costs, we can see that in the reference high T&D cost case, a larger share of H2 is produced through distributed electrolysis. As T&D costs shift downward, centralized natural gas with CCS takes a larger share of H2 production. There is not a significant difference between the low, $4/kg, and $2/kg T&D scenarios, however.
+
+### End-uses
+
+```{r}
+fcevs_2060_h2
+```
+
+> Vehicle cost has a larger impact than transmission and distribution costs. Without a decline in H2 vehicle costs, a slower BEV cost decline can help H2 achieve a comparable market penetration as an additional 10-20% reduction in FCEV costs. A combination of slow BEV cost declines and additional FCEV cost declines leads to at least a 250% increase in hydrogen use in transportation over the reference vehicle cost cases. 
+
+```{r}
+fcevs_2060_elc
+```
+
+> Electricity use in the transportation sector stays relatively stationary in all of the net-zero by 2060 cases, regardless of BEV or FCEV cost trajectory or H2 T&D costs. The largest factor in shifting BEV adoption is the speed at which the transportation sector is forced to reduce emissions. This shows that FCEVs and BEVs are not directly competing against each other, but rather are similarly competing against other transportation technologies.
+
+## Next Steps for Phase 1
+
+Continue building out database to include
+* Additional car, truck, and bus costs for H2 technologies
+* Charging infrastructure costs for BEVs
+* Battery storage technologies
+* Updated wind and solar costs
+* H2 interstate transmission costs
+
+Further investigate hydrogen production technology costs and efficiencies within the parametric sensitivity analysis (parameters 5 & 6)
+
+Gather more results on CO2, SO2, NOx, PM10 emissions within the electric, transportation, industrial, and refinery sectors.

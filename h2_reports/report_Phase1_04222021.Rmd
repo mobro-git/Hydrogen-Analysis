@@ -1,0 +1,172 @@
+---
+title: "Phase 1 Update: Part 2"
+author: "Morgan Browning & Carol Lenox"
+date: "04/22/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    theme: spacelab
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = TRUE, warning = FALSE, message = FALSE, tidy = TRUE, cache = FALSE)
+# source("h2_setup_04222021.R")
+# source("h2_data_04222021.R")
+# source("h2_results_04222021.R")
+# rmarkdown::render(here("h2_reports/report_Phase1_04222021.Rmd"))
+```
+
+## Objective
+
+Identify key cost and emissions mitigation paramters that affect hydrogen proliferation to be used in subsequent analyses.
+
+### Parameters
+
+1. System-wide net-zero CO2 emissions by:
+  + 2060 with -700 MMT CO2/yr land sink
+2. H2 light duty, heavy and medium duty trucks, and busses additional cost decrease from 2030-2050:
+  + Reference costs - no additional decrease
+  + 10% decrease
+  + 20% decrease
+3. Battery electric car and truck cost trajectories:
+  + Reference costs - projected BEV cost declines
+  + Slower and more moderate cost declines - Linear/Steady decline
+4. Hydrogen Transmission and Distribution Costs
+  + Reference cost - costs decrease from ~$16/kg to 5/kg delivery by 2040
+  + DOE $4/kg delivery - achieved by 2025
+  + DOE $2/kg delivery - achieved by 2025
+5. Future Hydrogen Production Technology Availability (lower cost, higher efficiency
+  + Reference - available 2040
+  + Available 2030
+6. Future Central and Distributed PEM Cost Decreases
+  + Reference - projected 52% and 42% reduction for central and distributed production, respectively, by 2040
+  + 70% reduction for both central and distributed production achieved by 2030
+
+### Additional data added
+
+* Updated car, truck, and bus costs for H2 technologies
+* Added shipping and rail H2 technologies
+* Added shipping, rail, and air BEV technologies
+* Charging infrastructure costs for BEVs (Level 1, Level 2, and DC Fast Charging - ICCT and NREL reports)
+* Battery storage technologies - 8hr
+
+### Additional data needed
+
+* H2 interstate transmission costs
+
+We are currently working on adding these costs. Initial testing has found that centralized H2 production is currently being built in only 1 region and shipped to all other regions. Removing H2 interstate trade still utilizes centralized H2 production but builds it in multiple regions and overall production capacity is slightly reduced. 
+
+### Net-Zero 2060 Runs
+
+Our focus in finishing up Phase 1 is to narrow down the parameters and their sensitivities used for the remainder of the analysis. This set of runs only utilized the net-zero by 2060 case, except for one run without a net-zero constraint that utilized the most stringent of all other parameters. Additionally, we did not test a transportation sector-specific emissions reduciton in this set of cases, as these results track very closely to a system-wide net-zero emissions constraint.
+
+```{r}
+datatable(head(cases,65), class = 'cell-border stripe', options = list(autoWidth = TRUE))
+```
+
+Scenario naming convention: nz.fcev.bev.td.fut.pem
+
+## Results
+
+### Hydrogen Production
+
+```{r}
+ggplotly(h2totalprod)
+```
+
+With all updates to the database, FCEV cost is the main driver of total H2 production capacity.
+
+```{r}
+ggplotly(h2totalprod_tech)
+```
+
+Distributed production narrowly outweighs centralized production in the cases with the most H2 production and is less affected by FCEV costs than centralized production. Almost all distributed production is electrolysis, with just a small amount coming from natural gas, which tapers off from 2040 to 2050. All centralized production is natural gas with CCS and centralized H2 production is much more sensitive to FCEV cost.
+ 
+
+```{r}
+ggplotly(h2totalprod_tech_2060)
+```
+
+Increasing PEM electrolysis cost reductions, from ~50% to 70%, switches ~150 PJ of production from centralized natural gas with CCS to distributed electrolysis. This switch happens, but to a negligible extent, in the reference and 20% FCEV cost reduction scenarios.
+
+
+### Refueling Stations
+
+The following table shows the number of refueling stations in the highest H2 production scenario for each assumed refueling station capacity. 
+
+```{r}
+stations
+```
+
+There are ~115,000 gasoline refueling stations in the US currently. Assuming the smallest capacity refueling station (500 kg H2/day), ~60% fewer H2 refueling stations would be required to meet demand. This number drops dramatically if higher capacity refueling stations are considered, which is warranted given the level of demand in these scenarios. These initial results show that refueling station assumptions for the T&D network are appropriate.
+
+At the peak demand levels in these scenarios, pipleine infrastructure is not yet warranted as it would require a larger market demand of ~100 ton H2/day.
+
+
+### End-uses
+
+Hydrogen technologies are available in light, medium, and heavy duty, air, rail, shipping, and bus. In the Phase 1 net-zero by 2060 scenarios run, hydrogen technologies did not come in for air or light duty
+
+```{r}
+ggplotly(ldv_air)
+```
+
+Light duty favors reductions in fossil fuel for electrification over hydrogen. Air, with no hydrogen alternative, electrifies to achieve emission reductions.
+
+```{r}
+ggplotly(trn_others)
+```
+
+Bus, medium and heavy duty, rail, and shipping favor hydrogen over electrification. Busses only electrify when FCEV costs are highest. If FCEV costs decline by an additional 10 or 20%, busses no longer electrify and opt to use hydrogen.
+
+```{r}
+ggplotly(h2cars_all)
+```
+
+Busses, medium duty, and heavy duty hydrogen use consistently increases as FCEV costs decrease. Medium duty FCEV's are the most sensitive to cost. Heavy duty sees a marked increase in hydrogen use wehn FCEV's decrease by 20% while bus sees the greatest increase with only a 10% decrease. Rail and shipping transition almost entirely to hydrogen due to the net-zero by 2060 constraint. Rail makes a more significant transition to hydrogen when on-road FCEV costs are higher, and as on-road FCEV costs drop, the rail switch decreases. Shipping almost entirely transitions to hydrogen regardless of on-road FCEV costs. 
+
+### Electric Sector
+
+```{r}
+ggplotly(electricity)
+```
+
+Hydrogen use in the transportation sector does not significantly affect electricity production within the electric sector. Lower costs for FCEVs shift lessen the reductions in natural gas electric generation, shifting emissions reductions achieved towards the net-zero constraint in the transportation sector to the electric sector. 
+
+Additionally, lower costs for FCEVs minutely decrease the need for added solar and wind capacity for electricity generation.
+
+Battery storage (8 hr) was analyzed as part of the Phase 1 scenarios, but is only built in the net-zero by 2050 scenarios and in small quantities. 
+
+## Next Steps
+
+### Phase 2 & 3
+
+* All H2 techs vs green-only H2 techs
+* Requiring renewables for H2 techs
+* Natural gas price variations
+* Oil price variations
+* Wind and solar cost variations
+
+* Limits on total renewables allowed in electric sector
+* Allowing increases in nuclear power generation
+* Limits on distributed production (limits on ability to sequester CO2)
+* Limits on CCS
+
+Initial testing of parameters outside of hydrogen supply chain: 
+
+* How does the ability of the industrial, electric, residential, and/or commercial sector contribute to H2 use within transportation?
+
+![Preliminary Results](C:\Users\mbrownin\OneDrive - Environmental Protection Agency (EPA)\Profile\Documents\Hydrogen\Hydrogen-Analysis\h2_rawdata\phase1excel.JPG)
+
+These graphs show the total H2 use and transportation fuels used in the net-zero by 2060 reference case and a high hydrogen penetration scenario (case 20 from Net-Zero 2060 Runs table above).
+
+* newNuc: allows new nuclear generation capacity to be added
+* xIND: constrains significant industrial sector electrification advancements and prevents industrial sector CCS additions
+* xRESCOM: constrains significant residential and commercial sector electrification advancements
+* xINDRESCOM: constrains significant industrial, residential, and commercial sector electrification advancements and prevents industrial sector CCS additions. 
+
+Achieving a system-wide CO2 reduction as deep as net-zero by 2060 requires significant emissions reductions from all sectors. Hydrogen use to decarbonize transportation will have significant interdependencies on other sector's abilities to decarbonize using electrification. 
